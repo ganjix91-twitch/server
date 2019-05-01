@@ -4220,11 +4220,13 @@ open_and_process_table(THD *thd, TABLE_LIST *tables, uint *counter, uint flags,
   /* Copy grant information from TABLE_LIST instance to TABLE one. */
   tables->table->grant= tables->grant;
 
-  /* Check and update metadata version of a base table. */
-  error= check_and_update_table_version(thd, tables, tables->table->s);
-
-  if (error)
-    goto end;
+  if (tables->prelocking_placeholder != TABLE_LIST::FK)
+  {
+    /* Check and update metadata version of a base table. */
+    error= check_and_update_table_version(thd, tables, tables->table->s);
+    if (error)
+      goto end;
+  }
   /*
     After opening a MERGE table add the children to the query list of
     tables, so that they are opened too.
@@ -4945,7 +4947,8 @@ handle_table(THD *thd, Query_tables_list *prelocking_ctx,
         return TRUE;
     }
 
-    if (table_list->table->file->referenced_by_foreign_key())
+    if (table_list->table->file->referenced_by_foreign_key() &&
+        table_list->table->mdl_ticket->get_type() >= MDL_SHARED_WRITE)
     {
       List <FOREIGN_KEY_INFO> fk_list;
       List_iterator<FOREIGN_KEY_INFO> fk_list_it(fk_list);

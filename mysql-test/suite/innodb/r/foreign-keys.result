@@ -114,12 +114,14 @@ SET debug_sync='now WAIT_FOR ready';
 SET lock_wait_timeout=1;
 UPDATE t2 SET pk=10 WHERE pk=1;
 ERROR HY000: Lock wait timeout exceeded; try restarting transaction
+PREPARE stmt FROM 'UPDATE t2 SET pk=10 WHERE pk=1';
+DEALLOCATE PREPARE stmt;
 FLUSH TABLE t2;
 SET debug_sync='now SIGNAL go';
 SET debug_sync='reset';
 connection con1;
 disconnect con1;
 connection default;
-SHOW OPEN TABLES;
+SHOW OPEN TABLES FROM test;
 Database	Table	In_use	Name_locked
 DROP TABLE t1, t2;
