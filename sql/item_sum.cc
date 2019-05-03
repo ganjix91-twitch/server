@@ -3555,7 +3555,7 @@ bool Item_func_group_concat::add()
   if (row_eligible && tree)
   {
     THD *thd= table->in_use;
-    table->field[0]->store(row_str_len);
+    table->field[0]->store(row_str_len, FALSE);
     if (tree_len > thd->variables.group_concat_max_len * GCONCAT_REPACK_FACTOR
         && tree->elements_in_tree > 1)
       if (repack_tree(thd))
@@ -3703,7 +3703,7 @@ bool Item_func_group_concat::setup(THD *thd)
       of this row. Used to detect when the tree goes over group_concat_max_len
     */
     Item *item= new (thd->mem_root)
-                    Item_int(thd, thd->variables.group_concat_max_len);
+                    Item_uint(thd, thd->variables.group_concat_max_len);
     if (!item || all_fields.push_front(item, thd->mem_root))
       DBUG_RETURN(TRUE);
   }
