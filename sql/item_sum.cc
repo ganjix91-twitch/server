@@ -3469,7 +3469,7 @@ int copy_to_tree(void* key, element_count count __attribute__((unused)),
   TABLE *table= st->table;
   Field* field= table->field[0];
   const uchar *ptr= field->ptr_in_record((uchar*)key - table->s->null_bytes);
-  size_t len= field->val_int(ptr);
+  size_t len= (size_t)field->val_int(ptr);
 
   DBUG_ASSERT(count == 1);
   if (!tree_insert(&st->tree, key, 0, st->tree.custom_arg))
@@ -3483,13 +3483,13 @@ bool Item_func_group_concat::repack_tree(THD *thd)
 {
   struct st_repack_tree st;
 
-  init_tree(&st.tree, MY_MIN(thd->variables.max_heap_table_size,
-                              thd->variables.sortbuff_size/16), 0,
+  init_tree(&st.tree, (size_t) MY_MIN(thd->variables.max_heap_table_size,
+                                      thd->variables.sortbuff_size/16), 0,
             tree->size_of_element, group_concat_key_cmp_with_order, NULL,
             (void*) this, MYF(MY_THREAD_SPECIFIC));
   st.table= table;
   st.len= 0;
-  st.maxlen= thd->variables.group_concat_max_len;
+  st.maxlen= (size_t)thd->variables.group_concat_max_len;
   tree_walk(tree, &copy_to_tree, &st, left_root_right);
   if (st.len <= st.maxlen) // Copying aborted. Must be OOM
   {
