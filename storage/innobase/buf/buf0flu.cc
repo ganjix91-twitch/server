@@ -1315,7 +1315,11 @@ buf_flush_try_neighbors(
 	}
 
 	if (UT_LIST_GET_LEN(buf_pool->LRU) < BUF_LRU_OLD_MIN_LEN
-	    || !srv_flush_neighbors || !space->is_rotational()) {
+		|| !srv_flush_neighbors || !space->is_rotational()
+#ifdef _WIN32
+		|| space->atomic_write_supported
+#endif
+	) {
 		/* If there is little space or neighbor flushing is
 		not enabled then just flush the victim. */
 		low = page_id.page_no();
