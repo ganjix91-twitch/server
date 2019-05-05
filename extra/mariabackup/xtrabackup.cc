@@ -4162,7 +4162,7 @@ reread_log_header:
 	memset(&stat_info, 0, sizeof(MY_STAT));
 	dst_log_file = ds_open(ds_redo, "ib_logfile0", &stat_info);
 	if (dst_log_file == NULL) {
-		msg("§rror: failed to open the target stream for "
+		msg("Error: failed to open the target stream for "
 		    "'ib_logfile0'.");
 		goto fail;
 	}
@@ -5763,7 +5763,19 @@ static bool check_all_privileges()
 			PRIVILEGE_WARNING);
 	}
 
-	return !(check_result & PRIVILEGE_ERROR);
+	if (check_result & PRIVILEGE_ERROR) {
+		mysql_close(mysql_connection);
+		msg("Current privileges, as reported by 'SHOW GRANTS': ");
+		int n=1;
+		for (std::list<std::string>::const_iterator it = granted_privileges.begin();
+			it != granted_privileges.end();
+			it++,n++) {
+				msg("  %d.%s", n, it->c_str());
+		}
+		return true;
+	}
+
+	return false;
 }
 
 bool
